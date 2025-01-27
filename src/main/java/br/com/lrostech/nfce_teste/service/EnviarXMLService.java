@@ -1,7 +1,7 @@
 package br.com.lrostech.nfce_teste.service;
 
-import br.com.lrostech.nfce_teste.domain.input.ConsultarStatusServicoInput;
-import br.com.lrostech.nfce_teste.domain.output.ConsultarStatusServicoOutput;
+import br.com.lrostech.nfce_teste.domain.input.EnviarXMLInput;
+import br.com.lrostech.nfce_teste.domain.output.EnviarXMLOutput;
 import br.com.lrostech.nfce_teste.infra.sefaz.SefazUtilitario;
 import br.com.lrostech.nfce_teste.support.util.FileUtil;
 import br.com.swconsultoria.nfe.dom.enuns.AmbienteEnum;
@@ -14,19 +14,21 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class ConsultarStatusServicoService {
-    public ConsultarStatusServicoOutput executar() {
+public class EnviarXMLService {
+    public EnviarXMLOutput executar(String conteudoXML) {
         try {
             byte[] bytesCertificado = FileUtil.lerBytesCertificado();
-            ConsultarStatusServicoInput input = new ConsultarStatusServicoInput(
+            EnviarXMLInput input = new EnviarXMLInput(
+                    conteudoXML,
+                    false,
                     DocumentoEnum.NFCE,
                     bytesCertificado,
                     "ARSOLUTI",
                     EstadosEnum.MA,
-                    AmbienteEnum.PRODUCAO
+                    AmbienteEnum.HOMOLOGACAO
             );
 
-            return SefazUtilitario.consultarStatusServico(input);
+            return SefazUtilitario.enviarXML(input);
         } catch (Exception e) {
             e.printStackTrace();
             System.out.println(e.getMessage());
