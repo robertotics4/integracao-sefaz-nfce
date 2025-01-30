@@ -14,6 +14,7 @@ public class SefazUtilitario {
     private static final EnviarXMLUseCase enviarXMLUseCase = new EnviarXMLUseCase();
     private static final InutilizarXMLUseCase inutilizarXMLUseCase = new InutilizarXMLUseCase();
     private static final CancelarXMLUseCase cancelarXMLUseCase = new CancelarXMLUseCase();
+    private static final CancelarXMLSubstituicaoUseCase cancelarXMLSubstituicaoUseCase = new CancelarXMLSubstituicaoUseCase();
 
     private SefazUtilitario() {}
 
@@ -35,5 +36,9 @@ public class SefazUtilitario {
 
     public static CancelarXMLOutput cancelarXML(CancelarXMLInput input) throws NfeException, CertificadoException {
         return cancelarXMLUseCase.executar(input);
+    }
+
+    public static CancelarXMLSubstituicaoOutput cancelarXMLSubstituicao(CancelarXMLSubstituicaoInput input) throws NfeException, CertificadoException {
+        return cancelarXMLSubstituicaoUseCase.executar(input);
     }
 }

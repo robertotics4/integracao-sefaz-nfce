@@ -1,7 +1,7 @@
 package br.com.lrostech.nfce_teste.useCase;
 
-import br.com.lrostech.nfce_teste.domain.input.CancelarXMLInput;
-import br.com.lrostech.nfce_teste.domain.output.CancelarXMLOutput;
+import br.com.lrostech.nfce_teste.domain.input.CancelarXMLSubstituicaoInput;
+import br.com.lrostech.nfce_teste.domain.output.CancelarXMLSubstituicaoOutput;
 import br.com.lrostech.nfce_teste.support.constants.ConfigConstants;
 import br.com.swconsultoria.certificado.Certificado;
 import br.com.swconsultoria.certificado.CertificadoService;
@@ -12,15 +12,15 @@ import br.com.swconsultoria.nfe.dom.Evento;
 import br.com.swconsultoria.nfe.dom.enuns.AmbienteEnum;
 import br.com.swconsultoria.nfe.dom.enuns.EstadosEnum;
 import br.com.swconsultoria.nfe.exception.NfeException;
-import br.com.swconsultoria.nfe.schema.envEventoCancNFe.TEnvEvento;
-import br.com.swconsultoria.nfe.schema.envEventoCancNFe.TRetEnvEvento;
-import br.com.swconsultoria.nfe.util.CancelamentoUtil;
+import br.com.swconsultoria.nfe.schema.envEventoCancSubst.TEnvEvento;
+import br.com.swconsultoria.nfe.schema.envEventoCancSubst.TRetEnvEvento;
+import br.com.swconsultoria.nfe.util.CancelamentoSubstituicaoUtil;
 import br.com.swconsultoria.nfe.util.RetornoUtil;
 
 import java.util.List;
 
-public class CancelarXMLUseCase {
-    public CancelarXMLOutput executar(CancelarXMLInput input) throws CertificadoException, NfeException {
+public class CancelarXMLSubstituicaoUseCase {
+    public CancelarXMLSubstituicaoOutput executar(CancelarXMLSubstituicaoInput input) throws CertificadoException, NfeException {
         ConfiguracoesNfe config = this.criarConfiguracoes(
                 input.bytesCertificado(),
                 input.senhaCertificado(),
@@ -30,15 +30,16 @@ public class CancelarXMLUseCase {
 
         Evento eventoCancelamento = new Evento();
         eventoCancelamento.setChave(input.chave());
+        eventoCancelamento.setChaveSusbstituta(input.chaveSubstituta());
         eventoCancelamento.setProtocolo(input.protocolo());
         eventoCancelamento.setCnpj(input.cnpj());
         eventoCancelamento.setMotivo(input.motivoCancelamento());
         eventoCancelamento.setDataEvento(input.dataCancelamento());
 
-        TEnvEvento tEnvEvento = CancelamentoUtil.montaCancelamento(eventoCancelamento, config);
-        TRetEnvEvento retorno = Nfe.cancelarNfe(config, tEnvEvento, input.validaXML(), input.tipoDocumento());
+        TEnvEvento tEnvEvento = CancelamentoSubstituicaoUtil.montaCancelamento(eventoCancelamento, config);
+        TRetEnvEvento retorno = Nfe.cancelarSubstituicaoNfe(config, tEnvEvento, input.validaXML());
 
-        RetornoUtil.validaCancelamento(retorno);
+        RetornoUtil.validaCancelamentoSubstituicao(retorno);
 
         return this.converterParaRecord(retorno);
     }
@@ -53,12 +54,12 @@ public class CancelarXMLUseCase {
         return ConfiguracoesNfe.criarConfiguracoes(estado, ambiente, certificado, ConfigConstants.SCHEMAS_PATH);
     }
 
-    private CancelarXMLOutput converterParaRecord(TRetEnvEvento tRetEnvEvento) {
+    private CancelarXMLSubstituicaoOutput converterParaRecord(TRetEnvEvento tRetEnvEvento) {
         if (tRetEnvEvento == null) {
             return null;
         }
 
-        return new CancelarXMLOutput(
+        return new CancelarXMLSubstituicaoOutput(
                 tRetEnvEvento.getIdLote(),
                 tRetEnvEvento.getTpAmb(),
                 tRetEnvEvento.getVerAplic(),

@@ -2,6 +2,7 @@ package br.com.lrostech.nfce_teste.controller;
 
 import br.com.lrostech.nfce_teste.domain.dto.CancelarXMLRequestDTO;
 import br.com.lrostech.nfce_teste.domain.dto.InutilizarXMLRequestDTO;
+import br.com.lrostech.nfce_teste.domain.dto.SubstituirXMLRequestDTO;
 import br.com.lrostech.nfce_teste.domain.output.*;
 import br.com.lrostech.nfce_teste.service.*;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +17,7 @@ public class NFCEController {
     private final EnviarXMLService enviarXMLService;
     private final InutilizarXMLService inutilizarXMLService;
     private final CancelarXMLService cancelarXMLService;
+    private final CancelarXMLSubstituicaoService cancelarXMLSubstituicaoService;
 
     @GetMapping("/{chave}")
     public ConsultarSituacaoOutput consultarNota(@PathVariable String chave) {
@@ -47,6 +49,17 @@ public class NFCEController {
     public CancelarXMLOutput cancelarXML(@RequestBody CancelarXMLRequestDTO dto) {
         return cancelarXMLService.executar(
                 dto.getChave(),
+                dto.getProtocolo(),
+                dto.getCnpj(),
+                dto.getMotivoCancelamento()
+        );
+    }
+
+    @PostMapping(name = "/substituir", consumes = "application/json", produces = "application/json")
+    public CancelarXMLSubstituicaoOutput substituirXML(@RequestBody SubstituirXMLRequestDTO dto) {
+        return cancelarXMLSubstituicaoService.executar(
+                dto.getChave(),
+                dto.getChaveSubstituta(),
                 dto.getProtocolo(),
                 dto.getCnpj(),
                 dto.getMotivoCancelamento()
