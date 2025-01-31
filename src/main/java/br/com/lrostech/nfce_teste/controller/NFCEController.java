@@ -34,7 +34,7 @@ public class NFCEController {
         return enviarXMLService.executar(conteudoXML);
     }
 
-    @PostMapping(name = "/inutilizar", consumes = "application/json", produces = "application/json")
+    @PostMapping("/inutilizar")
     public InutilizarXMLOutput inutilizarXML(@RequestBody InutilizarXMLRequestDTO dto) {
         return inutilizarXMLService.executar(
                 dto.getCnpj(),
@@ -45,7 +45,7 @@ public class NFCEController {
         );
     }
 
-    @PostMapping(name = "/cancelar", consumes = "application/json", produces = "application/json")
+    @PostMapping("/cancelar")
     public CancelarXMLOutput cancelarXML(@RequestBody CancelarXMLRequestDTO dto) {
         return cancelarXMLService.executar(
                 dto.getChave(),
@@ -55,7 +55,7 @@ public class NFCEController {
         );
     }
 
-    @PostMapping(name = "/substituir", consumes = "application/json", produces = "application/json")
+    @PostMapping("/substituir")
     public CancelarXMLSubstituicaoOutput substituirXML(@RequestBody SubstituirXMLRequestDTO dto) {
         return cancelarXMLSubstituicaoService.executar(
                 dto.getChave(),

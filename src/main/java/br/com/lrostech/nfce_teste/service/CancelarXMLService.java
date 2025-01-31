@@ -1,8 +1,8 @@
 package br.com.lrostech.nfce_teste.service;
 
+import br.com.lrostech.nfce_teste.domain.contract.ISefazClient;
 import br.com.lrostech.nfce_teste.domain.input.CancelarXMLInput;
 import br.com.lrostech.nfce_teste.domain.output.CancelarXMLOutput;
-import br.com.lrostech.nfce_teste.infra.sefaz.SefazUtilitario;
 import br.com.lrostech.nfce_teste.support.util.FileUtil;
 import br.com.swconsultoria.nfe.dom.enuns.AmbienteEnum;
 import br.com.swconsultoria.nfe.dom.enuns.DocumentoEnum;
@@ -17,6 +17,8 @@ import java.time.LocalDateTime;
 @RequiredArgsConstructor
 @Slf4j
 public class CancelarXMLService {
+    private final ISefazClient sefazClient;
+
     public CancelarXMLOutput executar(
             String chave,
             String protocolo,
@@ -39,7 +41,7 @@ public class CancelarXMLService {
                     AmbienteEnum.HOMOLOGACAO
             );
 
-            return SefazUtilitario.cancelarXML(input);
+            return this.sefazClient.cancelarXML(input);
         } catch (Exception e) {
             e.printStackTrace();
             System.out.println(e.getMessage());

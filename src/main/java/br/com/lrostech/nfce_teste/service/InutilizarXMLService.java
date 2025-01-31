@@ -1,8 +1,9 @@
 package br.com.lrostech.nfce_teste.service;
 
+import br.com.lrostech.nfce_teste.domain.contract.ISefazClient;
 import br.com.lrostech.nfce_teste.domain.input.InutilizarXMLInput;
 import br.com.lrostech.nfce_teste.domain.output.InutilizarXMLOutput;
-import br.com.lrostech.nfce_teste.infra.sefaz.SefazUtilitario;
+import br.com.lrostech.nfce_teste.domain.provider.SefazClient;
 import br.com.lrostech.nfce_teste.support.util.FileUtil;
 import br.com.swconsultoria.nfe.dom.enuns.AmbienteEnum;
 import br.com.swconsultoria.nfe.dom.enuns.DocumentoEnum;
@@ -17,6 +18,8 @@ import java.time.LocalDateTime;
 @RequiredArgsConstructor
 @Slf4j
 public class InutilizarXMLService {
+    private final ISefazClient sefazClient;
+
     public InutilizarXMLOutput executar(
             String cnpj,
             Integer serie,
@@ -41,7 +44,7 @@ public class InutilizarXMLService {
                     AmbienteEnum.HOMOLOGACAO
             );
 
-            return SefazUtilitario.inutilizarXML(input);
+            return this.sefazClient.inutilizarXML(input);
         } catch (Exception e) {
             e.printStackTrace();
             System.out.println(e.getMessage());

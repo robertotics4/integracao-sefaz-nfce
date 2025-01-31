@@ -1,8 +1,8 @@
 package br.com.lrostech.nfce_teste.service;
 
+import br.com.lrostech.nfce_teste.domain.contract.ISefazClient;
 import br.com.lrostech.nfce_teste.domain.input.EnviarXMLInput;
 import br.com.lrostech.nfce_teste.domain.output.EnviarXMLOutput;
-import br.com.lrostech.nfce_teste.infra.sefaz.SefazUtilitario;
 import br.com.lrostech.nfce_teste.support.util.FileUtil;
 import br.com.swconsultoria.nfe.dom.enuns.AmbienteEnum;
 import br.com.swconsultoria.nfe.dom.enuns.DocumentoEnum;
@@ -15,6 +15,8 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 @Slf4j
 public class EnviarXMLService {
+    private final ISefazClient sefazClient;
+
     public EnviarXMLOutput executar(String conteudoXML) {
         try {
             byte[] bytesCertificado = FileUtil.lerBytesCertificado();
@@ -28,7 +30,7 @@ public class EnviarXMLService {
                     AmbienteEnum.HOMOLOGACAO
             );
 
-            return SefazUtilitario.enviarXML(input);
+            return this.sefazClient.enviarXML(input);
         } catch (Exception e) {
             e.printStackTrace();
             System.out.println(e.getMessage());

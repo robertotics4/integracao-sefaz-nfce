@@ -1,31 +1,35 @@
-package br.com.lrostech.nfce_teste.useCase;
+package br.com.lrostech.nfce_teste.domain.useCase;
 
+import br.com.lrostech.nfce_teste.domain.contract.ICertificadoUtil;
+import br.com.lrostech.nfce_teste.domain.contract.INfeLib;
 import br.com.lrostech.nfce_teste.domain.input.InutilizarXMLInput;
 import br.com.lrostech.nfce_teste.domain.output.InutilizarXMLOutput;
 import br.com.lrostech.nfce_teste.support.constants.ConfigConstants;
 import br.com.swconsultoria.certificado.Certificado;
-import br.com.swconsultoria.certificado.CertificadoService;
 import br.com.swconsultoria.certificado.exception.CertificadoException;
-import br.com.swconsultoria.nfe.Nfe;
 import br.com.swconsultoria.nfe.dom.ConfiguracoesNfe;
-import br.com.swconsultoria.nfe.dom.enuns.AmbienteEnum;
-import br.com.swconsultoria.nfe.dom.enuns.EstadosEnum;
 import br.com.swconsultoria.nfe.exception.NfeException;
 import br.com.swconsultoria.nfe.schema_4.inutNFe.TInutNFe;
 import br.com.swconsultoria.nfe.schema_4.inutNFe.TRetInutNFe;
-import br.com.swconsultoria.nfe.util.InutilizacaoUtil;
-import br.com.swconsultoria.nfe.util.RetornoUtil;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
 
+@Component
+@RequiredArgsConstructor
 public class InutilizarXMLUseCase {
+    private final ICertificadoUtil certificadoUtil;
+    private final INfeLib nfeLib;
+
     public InutilizarXMLOutput executar(InutilizarXMLInput input) throws CertificadoException, NfeException {
-        ConfiguracoesNfe config = this.criarConfiguracoes(
-                input.bytesCertificado(),
-                input.senhaCertificado(),
+        Certificado certificado = this.certificadoUtil.certificadoPfxBytes(input.bytesCertificado(), input.senhaCertificado());
+        ConfiguracoesNfe config = this.nfeLib.criarConfiguracoes(
                 input.estado(),
-                input.ambiente()
+                input.ambiente(),
+                certificado,
+                ConfigConstants.SCHEMAS_PATH
         );
 
-        TInutNFe inutNFe = InutilizacaoUtil.montaInutilizacao(
+        TInutNFe inutNFe = this.nfeLib.montaInutilizacao(
                 input.tipoDocumento(),
                 input.cnpj(),
                 input.serie(),
@@ -36,21 +40,11 @@ public class InutilizarXMLUseCase {
                 config
         );
 
-        TRetInutNFe retorno = Nfe.inutilizacao(config, inutNFe, input.tipoDocumento(), input.validaXML());
+        TRetInutNFe retorno = this.nfeLib.inutilizacao(config, inutNFe, input.tipoDocumento(), input.validaXML());
 
-        RetornoUtil.validaInutilizacao(retorno);
+        this.nfeLib.validaInutilizacao(retorno);
 
         return this.converterParaRecord(retorno);
-    }
-
-    private ConfiguracoesNfe criarConfiguracoes(
-            byte[] bytesCertificado,
-            String senhaCertificado,
-            EstadosEnum estado,
-            AmbienteEnum ambiente
-    ) throws CertificadoException {
-        Certificado certificado = CertificadoService.certificadoPfxBytes(bytesCertificado, senhaCertificado);
-        return ConfiguracoesNfe.criarConfiguracoes(estado, ambiente, certificado, ConfigConstants.SCHEMAS_PATH);
     }
 
     private InutilizarXMLOutput converterParaRecord(TRetInutNFe tRetInutNFe) {

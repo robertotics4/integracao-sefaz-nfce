@@ -1,8 +1,8 @@
 package br.com.lrostech.nfce_teste.service;
 
+import br.com.lrostech.nfce_teste.domain.contract.ISefazClient;
 import br.com.lrostech.nfce_teste.domain.input.ConsultarSituacaoInput;
 import br.com.lrostech.nfce_teste.domain.output.ConsultarSituacaoOutput;
-import br.com.lrostech.nfce_teste.infra.sefaz.SefazUtilitario;
 import br.com.lrostech.nfce_teste.support.util.FileUtil;
 import br.com.swconsultoria.nfe.dom.enuns.AmbienteEnum;
 import br.com.swconsultoria.nfe.dom.enuns.DocumentoEnum;
@@ -15,6 +15,8 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 @Slf4j
 public class ConsultarNotaService {
+    private final ISefazClient sefazClient;
+
     public ConsultarSituacaoOutput executar(String chave) {
         try {
             byte[] bytesCertificado = FileUtil.lerBytesCertificado();
@@ -27,7 +29,7 @@ public class ConsultarNotaService {
                     AmbienteEnum.PRODUCAO
             );
 
-            return SefazUtilitario.consultarSituacao(input);
+            return this.sefazClient.consultarSituacao(input);
         } catch (Exception e) {
             e.printStackTrace();
             System.out.println(e.getMessage());

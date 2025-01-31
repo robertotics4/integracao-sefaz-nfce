@@ -1,42 +1,38 @@
-package br.com.lrostech.nfce_teste.useCase;
+package br.com.lrostech.nfce_teste.domain.useCase;
 
+import br.com.lrostech.nfce_teste.domain.contract.ICertificadoUtil;
+import br.com.lrostech.nfce_teste.domain.contract.INfeLib;
 import br.com.lrostech.nfce_teste.domain.input.ConsultarSituacaoInput;
 import br.com.lrostech.nfce_teste.domain.output.ConsultarSituacaoOutput;
 import br.com.lrostech.nfce_teste.support.constants.ConfigConstants;
 import br.com.swconsultoria.certificado.Certificado;
-import br.com.swconsultoria.certificado.CertificadoService;
 import br.com.swconsultoria.certificado.exception.CertificadoException;
-import br.com.swconsultoria.nfe.Nfe;
 import br.com.swconsultoria.nfe.dom.ConfiguracoesNfe;
-import br.com.swconsultoria.nfe.dom.enuns.AmbienteEnum;
-import br.com.swconsultoria.nfe.dom.enuns.EstadosEnum;
 import br.com.swconsultoria.nfe.exception.NfeException;
 import br.com.swconsultoria.nfe.schema_4.retConsSitNFe.TRetConsSitNFe;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+@Component
+@RequiredArgsConstructor
 public class ConsultarSituacaoUseCase {
+    private final ICertificadoUtil certificadoUtil;
+    private final INfeLib nfeLib;
+
     public ConsultarSituacaoOutput executar(ConsultarSituacaoInput input) throws CertificadoException, NfeException {
-        ConfiguracoesNfe config = this.criarConfiguracoes(
-                input.bytesCertificado(),
-                input.senhaCertificado(),
+        Certificado certificado = this.certificadoUtil.certificadoPfxBytes(input.bytesCertificado(), input.senhaCertificado());
+        ConfiguracoesNfe config = this.nfeLib.criarConfiguracoes(
                 input.estado(),
-                input.ambiente()
+                input.ambiente(),
+                certificado,
+                ConfigConstants.SCHEMAS_PATH
         );
 
-        TRetConsSitNFe retornoConsulta = Nfe.consultaXml(config, input.chave(), input.tipoDocumento());
+        TRetConsSitNFe retornoConsulta = this.nfeLib.consultaXml(config, input.chave(), input.tipoDocumento());
 
         return this.converterParaRecord(retornoConsulta);
-    }
-
-    private ConfiguracoesNfe criarConfiguracoes(
-            byte[] bytesCertificado,
-            String senhaCertificado,
-            EstadosEnum estado,
-            AmbienteEnum ambiente
-    ) throws CertificadoException {
-        Certificado certificado = CertificadoService.certificadoPfxBytes(bytesCertificado, senhaCertificado);
-        return ConfiguracoesNfe.criarConfiguracoes(estado, ambiente, certificado, ConfigConstants.SCHEMAS_PATH);
     }
 
     private ConsultarSituacaoOutput converterParaRecord(TRetConsSitNFe tRetConsSitNFe) {

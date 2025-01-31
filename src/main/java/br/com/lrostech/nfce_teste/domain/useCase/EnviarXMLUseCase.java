@@ -1,36 +1,44 @@
-package br.com.lrostech.nfce_teste.useCase;
+package br.com.lrostech.nfce_teste.domain.useCase;
 
+import br.com.lrostech.nfce_teste.domain.contract.ICertificadoUtil;
+import br.com.lrostech.nfce_teste.domain.contract.INfeLib;
 import br.com.lrostech.nfce_teste.domain.input.EnviarXMLInput;
 import br.com.lrostech.nfce_teste.domain.output.EnviarXMLOutput;
 import br.com.lrostech.nfce_teste.support.constants.ConfigConstants;
 import br.com.swconsultoria.certificado.Certificado;
 import br.com.swconsultoria.certificado.CertificadoService;
 import br.com.swconsultoria.certificado.exception.CertificadoException;
-import br.com.swconsultoria.nfe.Nfe;
 import br.com.swconsultoria.nfe.dom.ConfiguracoesNfe;
 import br.com.swconsultoria.nfe.dom.enuns.AmbienteEnum;
 import br.com.swconsultoria.nfe.dom.enuns.EstadosEnum;
 import br.com.swconsultoria.nfe.exception.NfeException;
 import br.com.swconsultoria.nfe.schema_4.enviNFe.TEnviNFe;
 import br.com.swconsultoria.nfe.schema_4.enviNFe.TRetEnviNFe;
-import br.com.swconsultoria.nfe.util.XmlNfeUtil;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
 
 import javax.xml.bind.JAXBException;
 
+@Component
+@RequiredArgsConstructor
 public class EnviarXMLUseCase {
+    private final ICertificadoUtil certificadoUtil;
+    private final INfeLib nfeLib;
+
     public EnviarXMLOutput executar(EnviarXMLInput input) throws CertificadoException, JAXBException, NfeException {
-        ConfiguracoesNfe config = this.criarConfiguracoes(
-                input.bytesCertificado(),
-                input.senhaCertificado(),
+        Certificado certificado = this.certificadoUtil.certificadoPfxBytes(input.bytesCertificado(), input.senhaCertificado());
+        ConfiguracoesNfe config = this.nfeLib.criarConfiguracoes(
                 input.estado(),
-                input.ambiente()
+                input.ambiente(),
+                certificado,
+                ConfigConstants.SCHEMAS_PATH
         );
 
-        TEnviNFe enviNFe = XmlNfeUtil.xmlToObject(input.conteudoXML(), TEnviNFe.class);
+        TEnviNFe enviNFe = this.nfeLib.xmlToObject(input.conteudoXML(), TEnviNFe.class);
 
-        enviNFe = Nfe.montaNfe(config, enviNFe, input.validaXML());
+        enviNFe = this.nfeLib.montaNfe(config, enviNFe, input.validaXML());
 
-        TRetEnviNFe retornoSefaz = Nfe.enviarNfe(config, enviNFe, input.tipoDocumento());
+        TRetEnviNFe retornoSefaz = this.nfeLib.enviarNfe(config, enviNFe, input.tipoDocumento());
 
         return this.converterParaRecord(retornoSefaz);
     }

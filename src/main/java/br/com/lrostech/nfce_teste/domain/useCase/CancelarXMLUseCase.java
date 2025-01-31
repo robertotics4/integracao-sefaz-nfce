@@ -1,31 +1,35 @@
-package br.com.lrostech.nfce_teste.useCase;
+package br.com.lrostech.nfce_teste.domain.useCase;
 
+import br.com.lrostech.nfce_teste.domain.contract.ICertificadoUtil;
+import br.com.lrostech.nfce_teste.domain.contract.INfeLib;
 import br.com.lrostech.nfce_teste.domain.input.CancelarXMLInput;
 import br.com.lrostech.nfce_teste.domain.output.CancelarXMLOutput;
 import br.com.lrostech.nfce_teste.support.constants.ConfigConstants;
 import br.com.swconsultoria.certificado.Certificado;
-import br.com.swconsultoria.certificado.CertificadoService;
 import br.com.swconsultoria.certificado.exception.CertificadoException;
-import br.com.swconsultoria.nfe.Nfe;
 import br.com.swconsultoria.nfe.dom.ConfiguracoesNfe;
 import br.com.swconsultoria.nfe.dom.Evento;
-import br.com.swconsultoria.nfe.dom.enuns.AmbienteEnum;
-import br.com.swconsultoria.nfe.dom.enuns.EstadosEnum;
 import br.com.swconsultoria.nfe.exception.NfeException;
 import br.com.swconsultoria.nfe.schema.envEventoCancNFe.TEnvEvento;
 import br.com.swconsultoria.nfe.schema.envEventoCancNFe.TRetEnvEvento;
-import br.com.swconsultoria.nfe.util.CancelamentoUtil;
-import br.com.swconsultoria.nfe.util.RetornoUtil;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+@Component
+@RequiredArgsConstructor
 public class CancelarXMLUseCase {
+    private final ICertificadoUtil certificadoUtil;
+    private final INfeLib nfeLib;
+
     public CancelarXMLOutput executar(CancelarXMLInput input) throws CertificadoException, NfeException {
-        ConfiguracoesNfe config = this.criarConfiguracoes(
-                input.bytesCertificado(),
-                input.senhaCertificado(),
+        Certificado certificado = this.certificadoUtil.certificadoPfxBytes(input.bytesCertificado(), input.senhaCertificado());
+        ConfiguracoesNfe config = this.nfeLib.criarConfiguracoes(
                 input.estado(),
-                input.ambiente()
+                input.ambiente(),
+                certificado,
+                ConfigConstants.SCHEMAS_PATH
         );
 
         Evento eventoCancelamento = new Evento();
@@ -35,22 +39,12 @@ public class CancelarXMLUseCase {
         eventoCancelamento.setMotivo(input.motivoCancelamento());
         eventoCancelamento.setDataEvento(input.dataCancelamento());
 
-        TEnvEvento tEnvEvento = CancelamentoUtil.montaCancelamento(eventoCancelamento, config);
-        TRetEnvEvento retorno = Nfe.cancelarNfe(config, tEnvEvento, input.validaXML(), input.tipoDocumento());
+        TEnvEvento tEnvEvento = this.nfeLib.montaCancelamento(eventoCancelamento, config);
+        TRetEnvEvento retorno = this.nfeLib.cancelarNfe(config, tEnvEvento, input.validaXML(), input.tipoDocumento());
 
-        RetornoUtil.validaCancelamento(retorno);
+        this.nfeLib.validaCancelamento(retorno);
 
         return this.converterParaRecord(retorno);
-    }
-
-    private ConfiguracoesNfe criarConfiguracoes(
-            byte[] bytesCertificado,
-            String senhaCertificado,
-            EstadosEnum estado,
-            AmbienteEnum ambiente
-    ) throws CertificadoException {
-        Certificado certificado = CertificadoService.certificadoPfxBytes(bytesCertificado, senhaCertificado);
-        return ConfiguracoesNfe.criarConfiguracoes(estado, ambiente, certificado, ConfigConstants.SCHEMAS_PATH);
     }
 
     private CancelarXMLOutput converterParaRecord(TRetEnvEvento tRetEnvEvento) {

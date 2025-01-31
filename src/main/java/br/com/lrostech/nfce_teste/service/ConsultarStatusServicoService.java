@@ -1,20 +1,20 @@
 package br.com.lrostech.nfce_teste.service;
 
+import br.com.lrostech.nfce_teste.domain.contract.ISefazClient;
 import br.com.lrostech.nfce_teste.domain.input.ConsultarStatusServicoInput;
 import br.com.lrostech.nfce_teste.domain.output.ConsultarStatusServicoOutput;
-import br.com.lrostech.nfce_teste.infra.sefaz.SefazUtilitario;
 import br.com.lrostech.nfce_teste.support.util.FileUtil;
 import br.com.swconsultoria.nfe.dom.enuns.AmbienteEnum;
 import br.com.swconsultoria.nfe.dom.enuns.DocumentoEnum;
 import br.com.swconsultoria.nfe.dom.enuns.EstadosEnum;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class ConsultarStatusServicoService {
+    private final ISefazClient sefazClient;
+
     public ConsultarStatusServicoOutput executar() {
         try {
             byte[] bytesCertificado = FileUtil.lerBytesCertificado();
@@ -26,7 +26,7 @@ public class ConsultarStatusServicoService {
                     AmbienteEnum.PRODUCAO
             );
 
-            return SefazUtilitario.consultarStatusServico(input);
+            return this.sefazClient.consultarStatusServico(input);
         } catch (Exception e) {
             e.printStackTrace();
             System.out.println(e.getMessage());
